@@ -4,18 +4,21 @@
 (define (domain logistics)
   (:requirements :strips :typing) 
   (:types truck
-          airplane - vehicle
+          airplane 
+          semi - vehicle  ;; Added vehicle semi
           package
-          vehicle - physobj
+          vehicle - physobj 
           airport
-          location - place
+          location 
+          depot - place  ;; Added place depot
           city
           place 
           physobj - object)
   
   (:predicates 	(in-city ?loc - place ?city - city)
 		(at ?obj - physobj ?loc - place)
-		(in ?pkg - package ?veh - vehicle))
+		(in ?pkg - package ?veh - vehicle)
+    (highway ?depo1 - depot ?depo2 - depot)) ;; Added predicate highway
   
 (:action LOAD-TRUCK
    :parameters    (?pkg - package ?truck - truck ?loc - place)
@@ -50,4 +53,37 @@
    (at ?airplane ?loc-from)
   :effect
    (and (not (at ?airplane ?loc-from)) (at ?airplane ?loc-to)))
+
+
+(:action MOVE-SEMI
+  :parameters (?from - depot ?to - depot ?semi - semi)
+  :precondition 
+   (and (at ?semi ?from) (highway ?from ?to))
+  :effect 
+   (and (not (at ?semi ?from)) (at ?semi ?to))
+)
+
+(:action LOAD-SEMI
+  :parameters (?pkg - package ?semi - semi ?loc - depot)
+  :precondition (and 
+    (at ?semi ?loc)
+    (at ?pkg ?loc)
+  )
+  :effect (and 
+    (not (at ?pkg ?loc))
+    (in ?pkg ?semi)
+  )
+)
+
+(:action UNLOAD-SEMI
+  :parameters (?pkg - package ?semi - semi ?loc - depot)
+  :precondition (and 
+    (in ?pkg ?semi)
+    (at ?semi ?loc)
+  )
+  :effect (and 
+    (not (in ?pkg ?semi))
+    (at ?pkg ?loc)
+  )
+)
 )
